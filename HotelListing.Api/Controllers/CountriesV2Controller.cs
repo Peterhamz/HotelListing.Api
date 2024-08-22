@@ -10,22 +10,18 @@ using HotelListing.Api.Models.Country;
 using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using HotelListing.Api.Contracts_IRepository_;
-using HotelListing.Api.Models;
-using HotelListing.Api.Repository;
-using Microsoft.AspNetCore.OData.Query;
-using Microsoft.AspNetCore.Authorization;
 
 namespace HotelListing.Api.Controllers
 {
     [Route("api/v{version:apiVersion}/contries")]
     [ApiController]
-    [ApiVersion("1.0", Deprecated = true)]
-    public class CountriesController : ControllerBase
+    [ApiVersion("2.0")]
+    public class CountriesV2Controller : ControllerBase
     {
         private readonly IMapper mapper;
         private readonly ICountriesRepository countriesRepository;
 
-        public CountriesController(IMapper mapper, ICountriesRepository countriesRepository)
+        public CountriesV2Controller(IMapper mapper, ICountriesRepository countriesRepository)
         {
          
             this.mapper = mapper;
@@ -34,25 +30,18 @@ namespace HotelListing.Api.Controllers
 
         // GET: api/Countries
         [HttpGet]
-        [EnableQuery]
-        public async Task<ActionResult<IEnumerable<GetCountryDto>>> GetCountries()
+        public async Task<ActionResult<IEnumerable<GetCountryDto>>> Getcountries()
         {
-            var countries = await countriesRepository.GetAllAsync();
-            var records = mapper.Map<List<GetCountryDto>>(countries);
-            return Ok(records);
-        }
 
-        [HttpGet($"{nameof(GetCountriesPaged)}")]
-        [Authorize]
-        public async Task<ActionResult<PagedResult<GetCountryDto>>> GetCountriesPaged([FromQuery] QueryParameters queryParameters)
-        {
-            var pagedCountriesResult = await countriesRepository.GetAllAsync<GetCountryDto>(queryParameters);
-            return Ok(pagedCountriesResult);
+            var countries = await countriesRepository.GetAllAsync();
+
+            var records = mapper.Map<List<GetCountryDto>>(countries);
+           
+            return Ok(records);
         }
 
         // GET: api/Countries/5
         [HttpGet("{id}")]
-        [Authorize]
         public async Task<ActionResult<CountryDto>> GetCountry(int id)
         {
             var country = countriesRepository.GetDetails(id);
@@ -70,7 +59,6 @@ namespace HotelListing.Api.Controllers
         // PUT: api/Countries/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        [Authorize]
         public async Task<IActionResult> PutCountry(int id, UpdateCountryDto updateCountryDto)
         {
             if (id != updateCountryDto.Id)
@@ -109,7 +97,6 @@ namespace HotelListing.Api.Controllers
         // POST: api/Countries
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [Authorize]
         public async Task<ActionResult<Country>> PostCountry(CreateCountryDto countryDtto)
         {
             var country = mapper.Map<Country>(countryDtto);

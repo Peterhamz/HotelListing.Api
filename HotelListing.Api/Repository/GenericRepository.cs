@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using HotelListing.Api.Contracts_IRepository_;
 using HotelListing.Api.Data;
+using HotelListing.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelListing.Api.Repository
@@ -9,11 +11,6 @@ namespace HotelListing.Api.Repository
     {
         private readonly HotelListingDbContext context;
         private readonly IMapper mapper;
-
-        public GenericRepository(HotelListingDbContext context)
-        {
-            this.context = context;
-        }
 
         public GenericRepository(HotelListingDbContext context, IMapper mapper)
         {
@@ -43,6 +40,23 @@ namespace HotelListing.Api.Repository
         public async Task<List<T>> GetAllAsync()
         {
             return await context.Set<T>().ToListAsync();
+        }
+
+        public async Task<PagedResult<TResult>> GetAllAsync<TResult>(QueryParameters queryParameter)
+        {
+            var totalSize = await context.Set<T>().CountAsync();
+            var items = await context.Set<T>()
+                .Skip(queryParameter.StartIndex)
+                .Take(queryParameter.PageSize)
+                .ProjectTo<TResult>(mapper.ConfigurationProvider)
+                .ToListAsync();
+            return new PagedResult<TResult>
+            {
+                Items = items,
+                PageNumber = queryParameter.StartIndex,
+                RecordNumber = queryParameter.PageSize,
+                TotalCount = totalSize
+            };
         }
 
         public async Task<T> GetAsync(int? id)
